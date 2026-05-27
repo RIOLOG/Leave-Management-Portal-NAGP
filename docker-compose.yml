@@ -143,82 +143,82 @@ services:
       - lms-network
     restart: unless-stopped
 
-  auth-service:
-    build: ./services/auth-service
-    container_name: lms-auth-service
-    ports:
-      - "3001:3001"
-    environment:
-      - PORT=3001
-      - JWT_SECRET=${JWT_SECRET}
-      - JWT_EXPIRY=${JWT_EXPIRY}
-      - MONGO_URI=mongodb://mongodb-auth:27017/auth-db
-      - CONSUL_HOST=consul
-      - CONSUL_PORT=8500
-      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
-      - LOGSTASH_HOST=logstash
-      - JAEGER_ENDPOINT=http://jaeger:14268/api/traces
-    depends_on:
-      - consul
-      - mongodb-auth
-      - rabbitmq
-    networks:
-      - lms-network
-    restart: unless-stopped
+  # auth-service:
+  #   build: ./services/auth-service
+  #   container_name: lms-auth-service
+  #   ports:
+  #     - "3001:3001"
+  #   environment:
+  #     - PORT=3001
+  #     - JWT_SECRET=${JWT_SECRET}
+  #     - JWT_EXPIRY=${JWT_EXPIRY}
+  #     - MONGO_URI=mongodb://mongodb-auth:27017/auth-db
+  #     - CONSUL_HOST=consul
+  #     - CONSUL_PORT=8500
+  #     - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
+  #     - LOGSTASH_HOST=logstash
+  #     - JAEGER_ENDPOINT=http://jaeger:14268/api/traces
+  #   depends_on:
+  #     - consul
+  #     - mongodb-auth
+  #     - rabbitmq
+  #   networks:
+  #     - lms-network
+  #   restart: unless-stopped
 
-  employee-service:
-    build: ./services/employee-service
-    container_name: lms-employee-service
-    ports:
-      - "3002:3002"
-    environment:
-      - PORT=3002
-      - MONGO_URI=mongodb://mongodb-employee:27017/employee-db
-      - CONSUL_HOST=consul
-      - CONSUL_PORT=8500
-      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
-      - LOGSTASH_HOST=logstash
-      - JAEGER_ENDPOINT=http://jaeger:14268/api/traces
-    depends_on:
-      - consul
-      - mongodb-employee
-    networks:
-      - lms-network
-    restart: unless-stopped
+  # employee-service:
+  #   build: ./services/employee-service
+  #   container_name: lms-employee-service
+  #   ports:
+  #     - "3002:3002"
+  #   environment:
+  #     - PORT=3002
+  #     - MONGO_URI=mongodb://mongodb-employee:27017/employee-db
+  #     - CONSUL_HOST=consul
+  #     - CONSUL_PORT=8500
+  #     - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
+  #     - LOGSTASH_HOST=logstash
+  #     - JAEGER_ENDPOINT=http://jaeger:14268/api/traces
+  #   depends_on:
+  #     - consul
+  #     - mongodb-employee
+  #   networks:
+  #     - lms-network
+  #   restart: unless-stopped
 
-  leave-service:
-    build: ./services/leave-service
-    container_name: lms-leave-service
-    ports:
-      - "3003:3003"
-    environment:
-      - PORT=3003
-      - MONGO_URI=mongodb://mongodb-leave:27017/leave-db
-      - CONSUL_HOST=consul
-      - CONSUL_PORT=8500
-      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
-      - LOGSTASH_HOST=logstash
-      - JAEGER_ENDPOINT=http://jaeger:14268/api/traces
-    depends_on:
-      - consul
-      - mongodb-leave
-      - rabbitmq
-    networks:
-      - lms-network
-    restart: unless-stopped
+  # leave-service:
+  #   build: ./services/leave-service
+  #   container_name: lms-leave-service
+  #   ports:
+  #     - "3003:3003"
+  #   environment:
+  #     - PORT=3003
+  #     - MONGO_URI=mongodb://mongodb-leave:27017/leave-db
+  #     - CONSUL_HOST=consul
+  #     - CONSUL_PORT=8500
+  #     - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
+  #     - LOGSTASH_HOST=logstash
+  #     - JAEGER_ENDPOINT=http://jaeger:14268/api/traces
+  #   depends_on:
+  #     - consul
+  #     - mongodb-leave
+  #     - rabbitmq
+  #   networks:
+  #     - lms-network
+  #   restart: unless-stopped
 
-  notification-service:
-    build: ./services/notification-service
-    container_name: lms-notification-service
-    environment:
-      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
-      - LOGSTASH_HOST=logstash
-    depends_on:
-      rabbitmq:
-        condition: service_healthy
-    networks:
-      - lms-network
-    restart: unless-stopped
+  # notification-service:
+  #   build: ./services/notification-service
+  #   container_name: lms-notification-service
+  #   environment:
+  #     - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
+  #     - LOGSTASH_HOST=logstash
+  #   depends_on:
+  #     rabbitmq:
+  #       condition: service_healthy
+  #   networks:
+  #     - lms-network
+  #   restart: unless-stopped
 
 # ── Volumes ──────────────────────────────────────────
 volumes:
