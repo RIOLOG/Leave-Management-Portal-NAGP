@@ -1,4 +1,5 @@
 require('dotenv').config();
+require('colors');
 
 const express = require('express');
 const connectDB = require('./config/database');
@@ -44,14 +45,14 @@ const start = async () => {
 
     // Step 3 — start HTTP server
     app.listen(PORT, async () => {
-      console.log(` Employee Service running on port ${PORT}`);
+      console.log(` Employee Service running on port ${PORT}`.green);
 
       // Step 4 — register with Consul
       await registerWithConsul();
     });
 
   } catch (error) {
-    console.error('Failed to start Employee Service:', error.message);
+    console.error('Failed to start Employee Service:', error.message.red);
     process.exit(1);
   }
 };

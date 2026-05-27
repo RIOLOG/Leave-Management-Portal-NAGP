@@ -1,3 +1,5 @@
+require('colors');
+
 const amqplib = require('amqplib');
 const Employee = require('../models/Employee');
 const { EXCHANGE_NAME } = require('./rabbitmq');
@@ -16,7 +18,7 @@ const startListeners = async (channel) => {
     // Bind queue to exchange
     await channel.bindQueue(QUEUE_NAME, EXCHANGE_NAME, ROUTING_KEY);
 
-    console.log(`Employee Service listening for: ${ROUTING_KEY}`);
+    console.log(`Employee Service listening for: ${ROUTING_KEY}`.yellow);
 
     channel.prefetch(1);
 
@@ -28,24 +30,24 @@ const startListeners = async (channel) => {
         const content = JSON.parse(message.content.toString());
         const { eventType, data } = content;
 
-        console.log(`\n Event received: ${eventType}`);
+        console.log(`\n Event received: ${eventType}`.yellow  );
 
         if (eventType === 'user.created') {
           await handleUserCreated(data);
         }
 
         channel.ack(message);
-        console.log(`Event processed: ${eventType}\n`);
+        console.log(`Event processed: ${eventType}\n`.yellow);
 
       } catch (error) {
-        console.error('Error processing event:', error.message);
+        console.error('Error processing event:', error.message.red);
         // nack — don't requeue to avoid infinite loop
         channel.nack(message, false, false);
       }
     });
 
   } catch (error) {
-    console.error('Listener setup failed:', error.message);
+    console.error('Listener setup failed:', error.message.red);
   }
 };
 
@@ -66,12 +68,7 @@ const handleUserCreated = async (data) => {
       name: data.name,
       email: data.email,
       role: data.role,
-      managerId: data.managerId || null,
-      leaveBalance: {
-        casual:    { total: 12, used: 0, remaining: 12 },
-        sick:      { total: 10, used: 0, remaining: 10 },
-        privilege: { total: 15, used: 0, remaining: 15 }
-      }
+      managerId: data.managerId || null
     });
 
     console.log(`Employee profile created: ${employee.name} (${employee.role})`);

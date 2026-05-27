@@ -6,15 +6,10 @@ const connectDB = async () => {
     const conn = await mongoose.connect(process.env.MONGO_URI, {
       serverSelectionTimeoutMS: 5000
     });
-
-    console.log(`MongoDB connected: ${conn.connection.host}`.green);
+    console.log(` MongoDB connected: ${conn.connection.host}`.green);
 
     mongoose.connection.on('disconnected', () => {
-      console.log('MongoDB disconnected');
-    });
-
-    mongoose.connection.on('reconnected', () => {
-      console.log('MongoDB reconnected');
+      console.log(' MongoDB disconnected'.yellow);
     });
 
   } catch (error) {
