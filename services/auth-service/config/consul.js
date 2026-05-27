@@ -1,3 +1,4 @@
+require('colors');
 const Consul = require('consul');
 
 const registerWithConsul = async () => {
@@ -29,8 +30,8 @@ const registerWithConsul = async () => {
 
     await consul.agent.service.register(serviceConfig);
 
-    console.log(`Registered with Consul: ${serviceConfig.name}`);
-    console.log(`Health check: ${serviceConfig.check.http}`);
+    console.log(`Registered with Consul: ${serviceConfig.name}`.yellow);
+    console.log(`Health check: ${serviceConfig.check.http}`.yellow);
 
     // Send TTL heartbeat every 15 seconds
     // This is like our custom heartbeat from POC!
@@ -46,7 +47,7 @@ const registerWithConsul = async () => {
     setTimeout(async () => {
       try {
         await consul.agent.check.pass(`service:${serviceName}`);
-        console.log(`💓 Consul TTL heartbeat started`);
+        console.log(`Consul TTL heartbeat started`.bgRed);
       } catch (err) {
         // silently ignore
       }
@@ -54,7 +55,7 @@ const registerWithConsul = async () => {
 
 
   } catch (error) {
-    console.error('Consul registration failed:', error.message);
+    console.error('Consul registration failed:', error.message.red);
   }
 };
 

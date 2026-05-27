@@ -1,5 +1,6 @@
 const express = require('express');
 const Employee = require('../models/Employee');
+
 const {
   authenticate,
   isManager,
@@ -126,7 +127,7 @@ router.put('/:userId/balance/deduct', async (req, res, next) => {
     employee.deductLeave(leaveType, days);
     await employee.save();
 
-    console.log(`✅ Deducted ${days} ${leaveType} days from ${employee.name}`);
+    console.log(` Deducted ${days} ${leaveType} days from ${employee.name}`);
 
     res.status(200).json({
       success: true,
@@ -182,7 +183,7 @@ router.put('/:userId/balance/restore', async (req, res, next) => {
     employee.restoreLeave(leaveType, days);
     await employee.save();
 
-    console.log(`✅ Restored ${days} ${leaveType} days to ${employee.name}`);
+    console.log(` Restored ${days} ${leaveType} days to ${employee.name}`);
 
     res.status(200).json({
       success: true,

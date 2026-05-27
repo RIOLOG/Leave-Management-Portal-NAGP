@@ -1,3 +1,4 @@
+require('colors');
 const Consul = require('consul');
 
 const registerWithConsul = async () => {
@@ -22,7 +23,7 @@ const registerWithConsul = async () => {
     };
 
     await consul.agent.service.register(serviceConfig);
-    console.log(`Registered with Consul: ${serviceName}`);
+    console.log(`Registered with Consul: ${serviceName}`.green);
 
     // TTL heartbeat every 15 seconds
     setInterval(async () => {
@@ -37,14 +38,14 @@ const registerWithConsul = async () => {
     setTimeout(async () => {
       try {
         await consul.agent.check.pass(`service:${serviceName}`);
-        console.log(` Consul TTL heartbeat started`);
+        console.log(` Consul TTL heartbeat started`.green);
       } catch (err) {
         // silently ignore
       }
     }, 1000);
 
   } catch (error) {
-    console.error(' Consul registration failed:', error.message);
+    console.error(' Consul registration failed:', error.message.red);
   }
 };
 
@@ -70,7 +71,7 @@ const lookupService = async (serviceName) => {
     };
 
   } catch (error) {
-    console.error(`Consul lookup failed for ${serviceName}:`, error.message);
+    console.error(`Consul lookup failed for ${serviceName}:`, error.message.red);
     return null;
   }
 };

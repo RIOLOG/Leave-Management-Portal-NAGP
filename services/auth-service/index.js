@@ -1,4 +1,5 @@
 require('dotenv').config();
+require('colors');
 
 const express = require('express');
 const connectDB = require('./config/database');
@@ -49,14 +50,14 @@ const start = async () => {
 
     // Step 4 — start HTTP server
     app.listen(PORT, async () => {
-      console.log(`🔐 Auth Service running on port ${PORT}`);
+      console.log(`Auth Service running on port ${PORT}`.green);
 
       // Step 5 — register with Consul
       await registerWithConsul();
     });
 
   } catch (error) {
-    console.error('Failed to start Auth Service:', error.message);
+    console.error('Failed to start Auth Service:', error.message.red);
     process.exit(1);
   }
 };

@@ -1,3 +1,6 @@
+
+require('colors');
+
 const amqplib = require('amqplib');
 
 const EXCHANGE_NAME = 'lms_exchange';
@@ -18,16 +21,16 @@ const connectRabbitMQ = async () => {
       durable: true
     });
 
-    console.log('Employee Service connected to RabbitMQ');
+    console.log('Employee Service connected to RabbitMQ'.green);
 
     connection.on('error', (err) => {
-      console.error('RabbitMQ error:', err.message);
+      console.error('RabbitMQ error:', err.message.red);
       channel = null;
       setTimeout(connectRabbitMQ, 5000);
     });
 
     connection.on('close', () => {
-      console.error('RabbitMQ connection closed. Retrying...');
+      console.error('RabbitMQ connection closed. Retrying...'.red);
       channel = null;
       setTimeout(connectRabbitMQ, 5000);
     });
@@ -35,7 +38,7 @@ const connectRabbitMQ = async () => {
     return channel;
 
   } catch (error) {
-    console.error('RabbitMQ connection failed:', error.message);
+    console.error('RabbitMQ connection failed:', error.message.red);
     setTimeout(connectRabbitMQ, 5000);
     return null;
   }

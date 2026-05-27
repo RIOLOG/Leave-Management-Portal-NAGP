@@ -1,3 +1,4 @@
+require('colors');
 const User = require('../models/User');
 const { publishEvent } = require('./rabbitmq');
 
@@ -10,7 +11,7 @@ const seedUsers = async () => {
       return;
     }
 
-    console.log('Seeding initial users...');
+    console.log('Seeding initial users...'.yellow);
 
     const manager1 = await User.create({
       name: 'Pankaj',
@@ -52,10 +53,10 @@ const seedUsers = async () => {
       });
     });
 
-    console.log('Users seeded successfully!');
+    console.log('Users seeded successfully!'.green);
 
   } catch (error) {
-    console.error('Seeding failed:', error.message);
+    console.error('Seeding failed:', error.message.red);
   }
 };
 
