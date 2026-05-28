@@ -14,7 +14,8 @@ const authenticate = (req, res, next) => {
       req.user = {
         userId: userIdFromHeader,
         role: roleFromHeader,
-        name: nameFromHeader
+        name: nameFromHeader,
+        managerId: req.headers['x-user-manager-id'] || null
       };
       return next();
     }
