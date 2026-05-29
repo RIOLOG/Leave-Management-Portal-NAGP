@@ -1,11 +1,17 @@
 require('color'); 
 
+const { createLogger } = require('../config/logger');
+
+const logger = createLogger('notification-service');
+
+
 // ─── Process each notification type ───────────────────
 const processNotification = async (eventType, data) => {
   switch (eventType) {
 
     // ── Leave Applied ──────────────────────────────────
     case 'leave.applied':
+      logger.info('Leave application submitted', { employeeName: data.employeeName, leaveType: data.leaveType, numberOfDays: data.numberOfDays });
       console.log('─────────────────────────────────────');
       console.log('📋 NOTIFICATION: Leave Application'.bgGreen);
       console.log(`   To Employee : ${data.employeeName}`);
@@ -26,6 +32,7 @@ const processNotification = async (eventType, data) => {
 
     // ── Leave Approved ────────────────────────────────
     case 'leave.approved':
+      logger.info('Leave application approved', { employeeName: data.employeeName, leaveType: data.leaveType, numberOfDays: data.numberOfDays });
       console.log('─────────────────────────────────────');
       console.log('✅ NOTIFICATION: Leave Approved'.bggreen);
       console.log(`   To Employee : ${data.employeeName}`);
@@ -40,6 +47,7 @@ const processNotification = async (eventType, data) => {
 
     // ── Leave Rejected ────────────────────────────────
     case 'leave.rejected':
+      logger.info('Leave application rejected', { employeeName: data.employeeName, leaveType: data.leaveType, numberOfDays: data.numberOfDays, reason: data.reason });
       console.log('─────────────────────────────────────');
       console.log('❌ NOTIFICATION: Leave Rejected'.bgRed);
       console.log(`   To Employee : ${data.employeeName}`);
@@ -53,6 +61,7 @@ const processNotification = async (eventType, data) => {
 
     // ── Approval Failed (Saga compensation) ───────────
     case 'leave.approval.failed':
+      logger.error('Leave approval process failed', { employeeName: data.employeeName, leaveType: data.leaveType, numberOfDays: data.numberOfDays, reason: data.reason });
       console.log('─────────────────────────────────────');
       console.log('NOTIFICATION: Approval Failed'.bgRed);
       console.log(`   To Employee : ${data.employeeName}`);

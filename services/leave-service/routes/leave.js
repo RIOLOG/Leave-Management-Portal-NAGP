@@ -4,6 +4,10 @@ const Leave = require('../models/Leave');
 const { authenticate, isManager, isOwnerOrManager } = require('../middleware/auth');
 const { runApprovalSaga } = require('../config/sagaOrchestrator');
 const { publishEvent } = require('../config/rabbitmq');
+const { checkBalanceCB } = require('../config/circuitBreaker');
+const { createLogger } = require('../config/logger');
+
+const logger = createLogger('leave-service');
 
 const router = express.Router();
 
@@ -77,14 +81,56 @@ router.post('/', authenticate, async (req, res, next) => {
     }
 
 
-    // Step 6 — check leave balance (call Employee Service)
-    try {
-      const balanceRes = await axios.get(
-        `${EMPLOYEE_SERVICE_URL}/employees/${employeeId}/balance`,
-        { headers: { authorization: req.headers['authorization'] } }
-      );
+    // // Step 6 — check leave balance (call Employee Service) - Without Circuit Breaker
+    // try {
+    //   const balanceRes = await axios.get(
+    //     `${EMPLOYEE_SERVICE_URL}/employees/${employeeId}/balance`,
+    //     { headers: { authorization: req.headers['authorization'] } }
+    //   );
 
-      const balance = balanceRes.data.data.leaveBalance[leaveType];
+    //   const balance = balanceRes.data.data.leaveBalance[leaveType];
+
+    //   if (!balance) {
+    //     return res.status(400).json({
+    //       success: false,
+    //       message: `Invalid leave type: ${leaveType}`
+    //     });
+    //   }
+
+    //   if (balance.remaining < numberOfDays) {
+    //     return res.status(400).json({
+    //       success: false,
+    //       message: `Insufficient ${leaveType} balance. Available: ${balance.remaining}, Requested: ${numberOfDays}`
+    //     });
+    //   }
+
+    // } catch (error) {
+    //   return res.status(503).json({
+    //     success: false,
+    //     message: 'Could not verify leave balance — try again'
+    //   });
+    // }
+
+
+
+
+    // Step 6 — check leave balance (call Employee Service) - With Crcuit Breaker
+    try {
+      const balanceResult = await checkBalanceCB.fire({
+        employeeId,
+        leaveType,
+        token: req.headers['authorization']
+      });
+
+      // Check if fallback triggered
+      if (balanceResult.fallback) {
+        return res.status(503).json({
+          success: false,
+          message: 'Cannot verify balance — Employee Service unavailable. Try again later.'
+        });
+      }
+
+      const balance = balanceResult.data.leaveBalance[leaveType];
 
       if (!balance) {
         return res.status(400).json({
@@ -106,6 +152,7 @@ router.post('/', authenticate, async (req, res, next) => {
         message: 'Could not verify leave balance — try again'
       });
     }
+
 
     // Step 7 — create leave request
     const leave = await Leave.create({
@@ -137,6 +184,15 @@ router.post('/', authenticate, async (req, res, next) => {
       success: true,
       message: 'Leave application submitted successfully',
       data: leave
+    });
+
+    logger.info('New leave application', {
+      leaveId: leave._id,
+      employeeId,
+      employeeName,
+      numberOfDays,
+      startDate,
+      endDate
     });
 
   } catch (error) {
@@ -226,7 +282,7 @@ router.get('/:leaveId', authenticate, async (req, res, next) => {
   try {
     const leave = await Leave.findById(req.params.leaveId)
       .select('-__v');
-    console.log('Fetched leave id:', leave); 
+    // console.log('Fetched leave id:', leave); 
 
     if (!leave) {
       return res.status(404).json({
@@ -292,12 +348,34 @@ router.put('/:leaveId/approve', authenticate, isManager, async (req, res, next) 
     const result = await runApprovalSaga(leave, req.user.userId);
 
     if (result.success) {
+
+      logger.info('Leave approved', {
+        leaveId: leave._id,
+        employeeId: leave.employeeId,
+        employeeName: leave.employeeName,
+        managerId: leave.managerId,
+        leaveType: leave.leaveType,
+        numberOfDays: leave.numberOfDays
+      });
+
       return res.status(200).json({
         success: true,
         message: 'Leave approved successfully',
         data: result.leave
       });
+
     } else {
+
+      logger.warn('Leave approval failed', {
+        leaveId: leave._id,
+        employeeId: leave.employeeId,
+        employeeName: leave.employeeName,
+        managerId: leave.managerId,
+        leaveType: leave.leaveType,
+        numberOfDays: leave.numberOfDays
+      });
+
+
       return res.status(400).json({
         success: false,
         message: result.error || 'Approval failed',

@@ -1,5 +1,6 @@
 require('dotenv').config();
 require('colors');
+require('./tracing'); 
 
 const express = require('express');
 const connectDB = require('./config/database');
@@ -7,9 +8,13 @@ const registerWithConsul = require('./config/consul');
 const { connectRabbitMQ } = require('./config/rabbitmq');
 const leaveRoutes = require('./routes/leave');
 const errorHandler = require('./middleware/errorHandler');
+const { createLogger } = require('./config/logger');
 
+
+const logger = createLogger('leave-service');
 const app = express();
 const PORT = process.env.PORT || 3003;
+
 
 app.use(express.json());
 app.use('/leaves', leaveRoutes);
@@ -32,11 +37,13 @@ const start = async () => {
 
     app.listen(PORT, async () => {
       console.log(` Leave Service running on port ${PORT}`.green);
+      logger.info(`Leave Service started on port ${PORT}`);
       await registerWithConsul();
     });
 
   } catch (error) {
     console.error(' Failed to start:'.red, error.message);
+    logger.error('Failed to start', { error: error.message, stack: error.stack });
     process.exit(1);
   }
 };

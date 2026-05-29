@@ -1,3 +1,4 @@
+require('./tracing');   
 require('dotenv').config();
 require('colors'); 
 

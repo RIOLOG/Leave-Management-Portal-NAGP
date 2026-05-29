@@ -8,7 +8,9 @@ const { connectRabbitMQ } = require('./config/rabbitmq');
 const seedUsers = require('./config/seedUsers');
 const authRoutes = require('./routes/auth');
 const errorHandler = require('./middleware/errorHandler');
+const { createLogger } = require('./config/logger');
 
+const logger = createLogger('auth-service');
 const app = express();
 const PORT = process.env.PORT || 3001;
 
@@ -51,6 +53,7 @@ const start = async () => {
     // Step 4 — start HTTP server
     app.listen(PORT, async () => {
       console.log(`Auth Service running on port ${PORT}`.green);
+      logger.info(`Auth Service started on port ${PORT}`);
 
       // Step 5 — register with Consul
       await registerWithConsul();
@@ -58,6 +61,7 @@ const start = async () => {
 
   } catch (error) {
     console.error('Failed to start Auth Service:', error.message.red);
+    logger.error('Failed to start Auth Service', { error: error.message, stack: error.stack });
     process.exit(1);
   }
 };
