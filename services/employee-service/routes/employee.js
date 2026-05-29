@@ -98,6 +98,9 @@ router.put('/:userId/balance/deduct', async (req, res, next) => {
 
     // Validate input
     if (!leaveType || !days) {
+
+      logger.warn('Invalid input for leave deduction', { leaveType, days });
+
       return res.status(400).json({
         success: false,
         message: 'leaveType and days are required'
@@ -105,6 +108,7 @@ router.put('/:userId/balance/deduct', async (req, res, next) => {
     }
 
     if (!['casual', 'sick', 'privilege'].includes(leaveType)) {
+      logger.warn('Invalid leave type for leave deduction', { leaveType });
       return res.status(400).json({
         success: false,
         message: 'Invalid leaveType. Must be casual, sick or privilege'
@@ -128,6 +132,14 @@ router.put('/:userId/balance/deduct', async (req, res, next) => {
     await employee.save();
 
     console.log(` Deducted ${days} ${leaveType} days from ${employee.name}`);
+    logger.info('Deducted leave balance', {
+      employeeId: employee.userId,
+      employeeName: employee.name,
+      leaveType,
+      daysDeducted: days,
+      updatedBalance: employee.leaveBalance[leaveType]
+    });
+
 
     res.status(200).json({
       success: true,
@@ -184,6 +196,14 @@ router.put('/:userId/balance/restore', async (req, res, next) => {
     await employee.save();
 
     console.log(` Restored ${days} ${leaveType} days to ${employee.name}`);
+    logger.info('Restored leave balance', {
+      employeeId: employee.userId,
+      employeeName: employee.name,
+      leaveType,
+      daysRestored: days,
+      updatedBalance: employee.leaveBalance[leaveType]
+    });
+
 
     res.status(200).json({
       success: true,

@@ -1,6 +1,9 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const { createLogger } = require('../config/logger');
+
+const logger = createLogger('auth-service');
 
 const router = express.Router();
 
@@ -12,6 +15,9 @@ router.post('/login', async (req, res, next) => {
 
     // Step 1 — validate input
     if (!email || !password) {
+
+      logger.warn('Login attempt with missing email or password', { email: email || 'N/A' });
+
       return res.status(400).json({
         success: false,
         message: 'Email and password are required'
@@ -55,6 +61,8 @@ router.post('/login', async (req, res, next) => {
       process.env.JWT_SECRET,
       { expiresIn: process.env.JWT_EXPIRY || '24h' }
     );
+
+    logger.info('User logged in successfully', { userId: user._id, email: user.email });
 
     // Step 5 — return token
     res.status(200).json({

@@ -8,6 +8,9 @@ const { connectRabbitMQ } = require('./config/rabbitmq');
 const { startListeners } = require('./config/listeners');
 const employeeRoutes = require('./routes/employee');
 const errorHandler = require('./middleware/errorHandler');
+const { createLogger } = require('./config/logger');
+
+const logger = createLogger('employee-service');
 
 const app = express();
 const PORT = process.env.PORT || 3002;
@@ -46,6 +49,7 @@ const start = async () => {
     // Step 3 — start HTTP server
     app.listen(PORT, async () => {
       console.log(` Employee Service running on port ${PORT}`.green);
+      logger.info(`Employee Service started on port ${PORT}`);
 
       // Step 4 — register with Consul
       await registerWithConsul();
@@ -53,6 +57,7 @@ const start = async () => {
 
   } catch (error) {
     console.error('Failed to start Employee Service:', error.message.red);
+    logger.error('Failed to start Employee Service', { error: error.message, stack: error.stack });
     process.exit(1);
   }
 };
