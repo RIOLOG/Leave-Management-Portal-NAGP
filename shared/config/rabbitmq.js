@@ -1,9 +1,9 @@
 require('colors');
+
 const amqplib = require('amqplib');
 
 const EXCHANGE_NAME = 'lms_exchange';
 const EXCHANGE_TYPE = 'topic';
-
 let channel = null;
 
 const connectRabbitMQ = async () => {
@@ -18,15 +18,16 @@ const connectRabbitMQ = async () => {
       durable: true
     });
 
-    console.log(' Auth Service connected to RabbitMQ'.green);
+    console.log(' Connected to RabbitMQ'.bgGreen);
 
     connection.on('error', (err) => {
-      console.error(' RabbitMQ error:', err.message.red);
+      console.error(' RabbitMQ error:'.bgRed, err.message);
       channel = null;
       setTimeout(connectRabbitMQ, 5000);
     });
 
     connection.on('close', () => {
+      console.log(' RabbitMQ connection closed'.bgYellow);
       channel = null;
       setTimeout(connectRabbitMQ, 5000);
     });
@@ -34,17 +35,16 @@ const connectRabbitMQ = async () => {
     return channel;
 
   } catch (error) {
-    console.error('❌ RabbitMQ connection failed:', error.message.red);
+    console.error('RabbitMQ connection failed:'.bgRed, error.message);
     setTimeout(connectRabbitMQ, 5000);
     return null;
   }
 };
 
-
 const publishEvent = (routingKey, data) => {
   try {
     if (!channel) {
-      console.error('❌ RabbitMQ channel not available'.red);
+      console.error('RabbitMQ channel not available'.bgRed);
       return;
     }
 
@@ -61,13 +61,11 @@ const publishEvent = (routingKey, data) => {
       { persistent: true }
     );
 
-    console.log(`Event published: ${routingKey}`.green);
+    console.log(` Event published: ${routingKey}`.bgGreen);
 
   } catch (error) {
-    console.error('Failed to publish event:', error.message.red);
+    console.error('Failed to publish event:'.bgRed, error.message);
   }
 };
 
-const getChannel = () => channel;
-
-module.exports = { connectRabbitMQ, publishEvent, getChannel };
+module.exports = { connectRabbitMQ, publishEvent, EXCHANGE_NAME };

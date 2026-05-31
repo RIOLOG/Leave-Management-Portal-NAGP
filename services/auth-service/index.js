@@ -2,13 +2,16 @@ require('dotenv').config();
 require('colors');
 
 const express = require('express');
-const connectDB = require('./config/database');
-const registerWithConsul = require('./config/consul');
-const { connectRabbitMQ } = require('./config/rabbitmq');
 const seedUsers = require('./config/seedUsers');
 const authRoutes = require('./routes/auth');
-const errorHandler = require('./middleware/errorHandler');
-const { createLogger } = require('./config/logger');
+
+
+const connectDB = require('../../shared/config/database');
+const { registerWithConsul } = require('../../shared/config/consul');
+const { connectRabbitMQ } = require('../../shared/config/rabbitmq');
+const { createLogger } = require('../../shared/config/logger');
+const errorHandler = require('../../shared/middleware/errorHandler');
+
 
 const logger = createLogger('auth-service');
 const app = express();
@@ -47,7 +50,7 @@ const start = async () => {
     // Step 2 — connect RabbitMQ
     await connectRabbitMQ();
 
-    // Step 3 — seed initial users
+    // Step 3 — seed users while connection is fresh
     await seedUsers();
 
     // Step 4 — start HTTP server
@@ -56,11 +59,11 @@ const start = async () => {
       logger.info(`Auth Service started on port ${PORT}`);
 
       // Step 5 — register with Consul
-      await registerWithConsul();
+      await registerWithConsul('auth-service', 3001);
     });
 
   } catch (error) {
-    console.error('Failed to start Auth Service:', error.message.red);
+    console.error('Failed to start Auth Service:', error.message);
     logger.error('Failed to start Auth Service', { error: error.message, stack: error.stack });
     process.exit(1);
   }

@@ -1,6 +1,6 @@
-require('color'); 
+require('colors'); 
 
-const { createLogger } = require('../config/logger');
+const { createLogger } = require('../../../shared/config/logger');
 
 const logger = createLogger('notification-service');
 

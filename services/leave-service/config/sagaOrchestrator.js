@@ -16,9 +16,9 @@
 require('colors');
 const axios = require('axios');
 const Leave = require('../models/Leave');
-const { publishEvent } = require('./rabbitmq');
+const { publishEvent } = require('../../../shared/config/rabbitmq');
 const { deductBalanceCB, restoreBalanceCB } = require('./circuitBreaker');
-const { createLogger } = require('./logger');
+const { createLogger } = require('../../../shared/config/logger');
 const logger = createLogger('leave-service');
 
 

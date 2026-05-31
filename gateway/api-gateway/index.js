@@ -5,11 +5,12 @@ require('colors');
 
 const express = require('express');
 const { createProxyMiddleware } = require('http-proxy-middleware');
-const { authenticate } = require('./middleware/auth');
+const { authenticate } = require('./middleware/auth');   // gateway-specific: handles PUBLIC_ROUTES
 const rateLimiter = require('./middleware/rateLimiter');
-const errorHandler = require('./middleware/errorHandler');
-const { getServiceUrl } = require('./config/consul');
 const ROUTES = require('./config/routes');
+
+const errorHandler = require('../../shared/middleware/errorHandler');
+const { getServiceUrl } = require('../../shared/config/consul');
 
 const app = express();
 const PORT = process.env.PORT || 3004;

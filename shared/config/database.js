@@ -3,9 +3,11 @@ const mongoose = require('mongoose');
 
 const connectDB = async () => {
   try {
-    const conn = await mongoose.connect(process.env.MONGO_URI, {
-      serverSelectionTimeoutMS: 5000
-    });
+    // Set globally — this is the only way that works in Mongoose 8+
+    // bufferTimeoutMS in connect() options is ignored
+    mongoose.set('bufferTimeoutMS', 60000);
+
+    const conn = await mongoose.connect(process.env.MONGO_URI);
     console.log(` MongoDB connected: ${conn.connection.host}`.green);
 
     mongoose.connection.on('disconnected', () => {
