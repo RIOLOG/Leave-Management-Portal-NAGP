@@ -192,15 +192,69 @@ services:
       - lms-network
     restart: unless-stopped
 
-  leave-service:
+ 
+
+  # ── Nginx Load Balancer ───────────────────────────────
+  nginx:
+    image: nginx:alpine
+    container_name: lms-nginx
+    ports:
+      - "80:80"         # ← main entry point for clients
+    volumes:
+      - ./infrastructure/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - leave-service-1
+      - leave-service-2
+      - api-gateway
+    networks:
+      - lms-network
+    restart: unless-stopped
+
+  # ── Leave Service Instance 1 ──────────────────────────
+  leave-service-1:
     build:
       context: .
       dockerfile: services/leave-service/Dockerfile
-    container_name: lms-leave-service
+    container_name: lms-leave-service-1
     ports:
-      - "3003:3003"
+      - "3003:3003"     # ← still accessible directly
     environment:
       - PORT=3003
+      - INSTANCE_ID=leave-service-1    # ← identify instance
+      - MONGO_URI=mongodb://mongodb-leave:27017/leave-db
+      - CONSUL_HOST=consul
+      - CONSUL_PORT=8500
+      - DOCKER_ENV=true
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
+      - LOGSTASH_HOST=logstash
+      - LOGSTASH_PORT=5000
+      - JAEGER_ENDPOINT=http://jaeger:14268/api/traces
+      - JWT_SECRET=${JWT_SECRET}
+      - EMPLOYEE_SERVICE_URL=http://employee-service:3002
+    depends_on:
+      consul:
+        condition: service_started
+      mongodb-leave:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      employee-service:
+        condition: service_started
+    networks:
+      - lms-network
+    restart: unless-stopped
+
+  # ── Leave Service Instance 2 ──────────────────────────
+  leave-service-2:
+    build:
+      context: .
+      dockerfile: services/leave-service/Dockerfile
+    container_name: lms-leave-service-2
+    ports:
+      - "3005:3003"     # ← different host port
+    environment:
+      - PORT=3003
+      - INSTANCE_ID=leave-service-2    # ← identify instance
       - MONGO_URI=mongodb://mongodb-leave:27017/leave-db
       - CONSUL_HOST=consul
       - CONSUL_PORT=8500
@@ -233,9 +287,23 @@ services:
       - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
       - LOGSTASH_HOST=logstash
       - LOGSTASH_PORT=5000
+      - SMTP_HOST=mailpit
+      - SMTP_PORT=1025
     depends_on:
       rabbitmq:
         condition: service_healthy
+    networks:
+      - lms-network
+    restart: unless-stopped
+
+
+  # ── Mail Server (for demo) ────────────────────────────
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: lms-mailpit
+    ports:
+      - "1025:1025"    # SMTP port (services send here)
+      - "8025:8025"    # Web UI (view emails here)
     networks:
       - lms-network
     restart: unless-stopped
@@ -263,7 +331,8 @@ services:
       - consul
       - auth-service
       - employee-service
-      - leave-service
+      - leave-service-1
+      - leave-service-2 
     networks:
       - lms-network
     restart: unless-stopped
@@ -277,3 +346,6 @@ volumes:
 networks:
   lms-network:
     driver: bridge
+
+
+    
