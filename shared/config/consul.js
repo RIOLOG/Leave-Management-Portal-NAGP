@@ -57,13 +57,14 @@ const getServiceUrl = async (serviceName) => {
 
     if (isDocker) {
       // In Docker — use service name directly (no Consul needed)
-      const ports = {
-        'auth-service':     3001,
-        'employee-service': 3002,
-        'leave-service':    3003,
-        'api-gateway':      3004
+      // leave-service is load balanced via nginx
+      const urls = {
+        'auth-service':     'http://auth-service:3001',
+        'employee-service': 'http://employee-service:3002',
+        'leave-service':    'http://nginx',
+        'api-gateway':      'http://api-gateway:3004'
       };
-      return `http://${serviceName}:${ports[serviceName]}`;
+      return urls[serviceName];
     }
 
     // Local dev — use Consul lookup

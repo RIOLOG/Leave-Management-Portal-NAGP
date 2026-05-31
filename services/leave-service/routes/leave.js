@@ -163,6 +163,7 @@ router.post('/', authenticate, async (req, res, next) => {
     const leave = await Leave.create({
       employeeId,
       employeeName,
+      employeeEmail: req.user.email,   
       managerId,
       leaveType,
       startDate: start,
@@ -177,6 +178,7 @@ router.post('/', authenticate, async (req, res, next) => {
       leaveId: leave._id,
       employeeId,
       employeeName,
+      employeeEmail: req.user.email,
       managerId,
       leaveType,
       numberOfDays,
@@ -195,6 +197,7 @@ router.post('/', authenticate, async (req, res, next) => {
       leaveId: leave._id,
       employeeId,
       employeeName,
+      employeeEmail: req.user.email,
       numberOfDays,
       startDate,
       endDate
@@ -443,6 +446,7 @@ router.put('/:leaveId/reject', authenticate, isManager, async (req, res, next) =
       leaveId: leave._id,
       employeeId: leave.employeeId,
       employeeName: leave.employeeName,
+      employeeEmail: leave.employeeEmail, 
       managerId: leave.managerId,
       leaveType: leave.leaveType,
       numberOfDays: leave.numberOfDays,

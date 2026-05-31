@@ -83,6 +83,7 @@ const runApprovalSaga = async (leave, managerId) => {
       leaveId: leave._id,
       employeeId: leave.employeeId,
       employeeName: leave.employeeName,
+      employeeEmail: leave.employeeEmail,
       managerId: leave.managerId,
       leaveType: leave.leaveType,
       numberOfDays: leave.numberOfDays,

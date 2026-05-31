@@ -22,9 +22,18 @@ const { createLogger } = require('../../shared/config/logger');
 const logger = createLogger('leave-service');
 const app = express();
 const PORT = process.env.PORT || 3003;
+const INSTANCE_ID = process.env.INSTANCE_ID || 'leave-service';
 
 
 app.use(express.json());
+
+// Add instance ID header to every response — for load balancer testing
+app.use((req, res, next) => {
+  res.setHeader('X-Instance-ID', INSTANCE_ID);
+  console.log(`[${INSTANCE_ID}] ${req.method} ${req.path}`);
+  next();
+});
+
 app.use('/leaves', leaveRoutes);
 
 app.get('/health', (req, res) => {
@@ -44,8 +53,8 @@ const start = async () => {
     await connectRabbitMQ();
 
     app.listen(PORT, async () => {
-      console.log(` Leave Service running on port ${PORT}`.green);
-      logger.info(`Leave Service started on port ${PORT}`);
+      console.log(`📝 Leave Service [${INSTANCE_ID}] running on port ${PORT}`);
+      logger.info(`Leave Service started`, { instanceId: INSTANCE_ID, port: PORT });
       await registerWithConsul('leave-service', 3003);
     });
 

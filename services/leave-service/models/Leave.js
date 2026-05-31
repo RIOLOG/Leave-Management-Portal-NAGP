@@ -13,6 +13,11 @@ const leaveSchema = new mongoose.Schema(
       required: [true, 'employeeName is required']
     },
 
+    employeeEmail: {
+      type: String,
+      default: null
+    },
+
     // Manager who will approve/reject
     managerId: {
       type: String,
