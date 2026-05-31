@@ -31,10 +31,6 @@ const connectAndListen = async (processNotification) => {
     // Declare queue
     await channel.assertQueue(QUEUE_NAME, { durable: true });
 
-    console.log('BINDING_KEYS:', BINDING_KEYS.purple);
-    console.log('Type:', typeof BINDING_KEYS.purple);
-    console.log('Is Array:', Array.isArray(BINDING_KEYS).purple);
-
     // Bind to ALL notification events
     for (const key of BINDING_KEYS) {
       await channel.bindQueue(QUEUE_NAME, EXCHANGE_NAME, key);

@@ -3,12 +3,20 @@ require('colors');
 require('./tracing'); 
 
 const express = require('express');
-const connectDB = require('./config/database');
-const registerWithConsul = require('./config/consul');
-const { connectRabbitMQ } = require('./config/rabbitmq');
+// const connectDB = require('./config/database');
+// const registerWithConsul = require('./config/consul');
+// const { connectRabbitMQ } = require('./config/rabbitmq');
 const leaveRoutes = require('./routes/leave');
-const errorHandler = require('./middleware/errorHandler');
-const { createLogger } = require('./config/logger');
+// const errorHandler = require('./middleware/errorHandler');
+// const { createLogger } = require('./config/logger');
+
+
+const connectDB = require('../../shared/config/database');
+const { registerWithConsul } = require('../../shared/config/consul');
+const { connectRabbitMQ } = require('../../shared/config/rabbitmq');
+const errorHandler = require('../../shared/middleware/errorHandler');
+const { createLogger } = require('../../shared/config/logger');
+
 
 
 const logger = createLogger('leave-service');
@@ -38,7 +46,7 @@ const start = async () => {
     app.listen(PORT, async () => {
       console.log(` Leave Service running on port ${PORT}`.green);
       logger.info(`Leave Service started on port ${PORT}`);
-      await registerWithConsul();
+      await registerWithConsul('leave-service', 3003);
     });
 
   } catch (error) {

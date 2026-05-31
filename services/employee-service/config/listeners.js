@@ -2,7 +2,7 @@ require('colors');
 
 const amqplib = require('amqplib');
 const Employee = require('../models/Employee');
-const { EXCHANGE_NAME } = require('./rabbitmq');
+const { EXCHANGE_NAME } = require('../../../shared/config/rabbitmq');
 
 
 const QUEUE_NAME = 'employee_user_created_queue';

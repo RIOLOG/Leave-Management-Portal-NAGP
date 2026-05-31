@@ -1,9 +1,14 @@
 require('colors');
 const User = require('../models/User');
-const { publishEvent } = require('./rabbitmq');
+const { publishEvent } = require('../../../shared/config/rabbitmq');
 
-const seedUsers = async () => {
+const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+const seedUsers = async (attempt = 1) => {
   try {
+    // Wait 2s on first attempt — Docker topology needs time to stabilize
+    // even after mongoose emits 'connected'
+    if (attempt === 1) await sleep(2000);
 
     const existingUsers = await User.countDocuments();
     if (existingUsers > 0) {
@@ -56,7 +61,12 @@ const seedUsers = async () => {
     console.log('Users seeded successfully!'.green);
 
   } catch (error) {
-    console.error('Seeding failed:', error.message.red);
+    if (attempt < 5) {
+      console.log(`Seeding attempt ${attempt} failed, retrying in 3s...`.yellow);
+      await sleep(3000);
+      return seedUsers(attempt + 1);
+    }
+    console.error(`Seeding failed after ${attempt} attempts: ${error.message}`);
   }
 };
 

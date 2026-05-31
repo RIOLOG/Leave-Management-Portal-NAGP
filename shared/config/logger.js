@@ -42,8 +42,16 @@ class TCPTransport extends winston.Transport {
   }
 }
 
+const loggers = {};
+
 const createLogger = (serviceName) => {
-  return winston.createLogger({
+  // Return existing logger if already created
+  if (loggers[serviceName]) {
+    return loggers[serviceName];
+  }
+
+  // Create new logger only once per service
+  loggers[serviceName] = winston.createLogger({
     defaultMeta: { service: serviceName },
     format: winston.format.combine(
       winston.format.timestamp(),
@@ -69,6 +77,8 @@ const createLogger = (serviceName) => {
       })
     ]
   });
+
+  return loggers[serviceName];
 };
 
 module.exports = { createLogger };

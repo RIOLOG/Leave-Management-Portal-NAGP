@@ -1,11 +1,16 @@
 const express = require('express');
 const axios = require('axios');
 const Leave = require('../models/Leave');
-const { authenticate, isManager, isOwnerOrManager } = require('../middleware/auth');
+// const { authenticate, isManager, isOwnerOrManager } = require('../middleware/auth');
 const { runApprovalSaga } = require('../config/sagaOrchestrator');
-const { publishEvent } = require('../config/rabbitmq');
+// const { publishEvent } = require('../config/rabbitmq');
 const { checkBalanceCB } = require('../config/circuitBreaker');
-const { createLogger } = require('../config/logger');
+// const { createLogger } = require('../config/logger');
+
+const { authenticate, isManager } = require('../../../shared/middleware/auth');
+const { publishEvent } = require('../../../shared/config/rabbitmq');
+const { createLogger } = require('../../../shared/config/logger');
+
 
 const logger = createLogger('leave-service');
 

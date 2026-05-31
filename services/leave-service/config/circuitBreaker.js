@@ -4,6 +4,7 @@ const CircuitBreaker = require('opossum');
 const axios = require('axios');
 const { bgCyan } = require('colors');
 
+
 const EMPLOYEE_SERVICE_URL = process.env.EMPLOYEE_SERVICE_URL
   || 'http://localhost:3002';
 

@@ -1,7 +1,8 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
-const { createLogger } = require('../config/logger');
+// const { createLogger } = require('../config/logger');
+const { createLogger } = require('../../../shared/config/logger');
 
 const logger = createLogger('auth-service');
 

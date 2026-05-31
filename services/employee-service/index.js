@@ -2,13 +2,21 @@ require('dotenv').config();
 require('colors');
 
 const express = require('express');
-const connectDB = require('./config/database');
-const { registerWithConsul } = require('./config/consul');
-const { connectRabbitMQ } = require('./config/rabbitmq');
+// const connectDB = require('./config/database');
+// const { registerWithConsul } = require('./config/consul');
+// const { connectRabbitMQ } = require('./config/rabbitmq');
 const { startListeners } = require('./config/listeners');
 const employeeRoutes = require('./routes/employee');
-const errorHandler = require('./middleware/errorHandler');
-const { createLogger } = require('./config/logger');
+// const errorHandler = require('./middleware/errorHandler');
+// const { createLogger } = require('./config/logger');
+
+
+const connectDB = require('../../shared/config/database');
+const { registerWithConsul } = require('../../shared/config/consul');
+const { connectRabbitMQ } = require('../../shared/config/rabbitmq');
+const errorHandler = require('../../shared/middleware/errorHandler');
+const { createLogger } = require('../../shared/config/logger');
+
 
 const logger = createLogger('employee-service');
 
@@ -52,7 +60,7 @@ const start = async () => {
       logger.info(`Employee Service started on port ${PORT}`);
 
       // Step 4 — register with Consul
-      await registerWithConsul();
+      await registerWithConsul('employee-service', 3002);
     });
 
   } catch (error) {

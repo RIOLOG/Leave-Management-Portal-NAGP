@@ -1,26 +1,23 @@
 const jwt = require('jsonwebtoken');
 
-
-// ─── Verify JWT Token ──────────────────────────────────
 const authenticate = (req, res, next) => {
   try {
-    // Option 1 — from Gateway headers (when called via gateway)
+    // From Gateway headers (when called via gateway)
     const userIdFromHeader = req.headers['x-user-id'];
     const roleFromHeader = req.headers['x-user-role'];
-    const nameFromHeader = req.headers['x-user-name'];
 
     if (userIdFromHeader && roleFromHeader) {
-      // Trust gateway — use headers
       req.user = {
         userId: userIdFromHeader,
         role: roleFromHeader,
-        name: nameFromHeader,
-        managerId: req.headers['x-user-manager-id'] || null
+        name: req.headers['x-user-name'],
+        managerId: req.headers['x-user-manager-id'] || null,
+        email: req.headers['x-user-email']
       };
       return next();
     }
 
-    // Option 2 — direct JWT token (when called directly)
+    // Direct JWT (when tested using postman directly on this service)
     const authHeader = req.headers['authorization'];
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -49,9 +46,6 @@ const authenticate = (req, res, next) => {
   }
 };
 
-
-
-// ─── Check Manager Role ────────────────────────────────
 const isManager = (req, res, next) => {
   if (req.user.role !== 'manager') {
     return res.status(403).json({
@@ -62,10 +56,6 @@ const isManager = (req, res, next) => {
   next();
 };
 
-
-// ─── Check Own Data or Manager ────────────────────────
-// Employee can only access their own data
-// Manager can access any employee data
 const isOwnerOrManager = (req, res, next) => {
   const requestedUserId = req.params.userId;
   const loggedInUserId = req.user.userId.toString();

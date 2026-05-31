@@ -5,7 +5,10 @@ const {
   authenticate,
   isManager,
   isOwnerOrManager
-} = require('../middleware/auth');
+} = require('../../../shared/middleware/auth');
+const { createLogger } = require('../../../shared/config/logger');
+
+const logger = createLogger('employee-service');
 
 
 const router = express.Router();

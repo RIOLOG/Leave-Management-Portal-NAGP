@@ -1,9 +1,11 @@
 require('dotenv').config();
-require('color');
+require('colors');
 
 const { connectAndListen } = require('./config/rabbitmq');
 const { processNotification } = require('./config/notifications');
-const { createLogger } = require('./config/logger');
+// const { createLogger } = require('./config/logger');
+
+const { createLogger } = require('../../shared/config/logger');
 
 const logger = createLogger('notification-service');
 
