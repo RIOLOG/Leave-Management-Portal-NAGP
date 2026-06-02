@@ -1,0 +1,328 @@
+services:
+
+  consul:
+    image: consul:1.15
+    container_name: lms-consul
+    ports:
+      - "8500:8500"
+    command: agent -server -bootstrap-expect=1 -ui -client=0.0.0.0
+    networks:
+      - lms-network
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: lms-rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    networks:
+      - lms-network
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  mongodb-auth:
+    image: mongo:7.0
+    container_name: lms-mongodb-auth
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_auth_data:/data/db
+    networks:
+      - lms-network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  mongodb-employee:
+    image: mongo:7.0
+    container_name: lms-mongodb-employee
+    ports:
+      - "27018:27017"
+    volumes:
+      - mongodb_employee_data:/data/db
+    networks:
+      - lms-network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  mongodb-leave:
+    image: mongo:7.0
+    container_name: lms-mongodb-leave
+    ports:
+      - "27019:27017"
+    volumes:
+      - mongodb_leave_data:/data/db
+    networks:
+      - lms-network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+    container_name: lms-elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+    ports:
+      - "9200:9200"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    networks:
+      - lms-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9200"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:8.11.0
+    container_name: lms-logstash
+    ports:
+      - "5000:5000"
+      - "9600:9600"
+    volumes:
+      - ./infrastructure/elk/logstash.conf:/usr/share/logstash/pipeline/logstash.conf
+    networks:
+      - lms-network
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    environment:
+      - LS_JAVA_OPTS=-Xms256m -Xmx256m
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.11.0
+    container_name: lms-kibana
+    ports:
+      - "5601:5601"
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    networks:
+      - lms-network
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: lms-jaeger
+    ports:
+      - "6831:6831/udp"
+      - "16686:16686"
+      - "14268:14268"
+    networks:
+      - lms-network
+
+  auth-service:
+    image: riolog27/lms-auth-service:1.2
+    container_name: lms-auth-service
+    ports:
+      - "3001:3001"
+    environment:
+      - PORT=3001
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_EXPIRY=${JWT_EXPIRY}
+      - MONGO_URI=mongodb://mongodb-auth:27017/auth-db
+      - CONSUL_HOST=consul
+      - CONSUL_PORT=8500
+      - DOCKER_ENV=true
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
+      - LOGSTASH_HOST=logstash
+      - LOGSTASH_PORT=5000
+      - JAEGER_ENDPOINT=http://jaeger:14268/api/traces
+    depends_on:
+      consul:
+        condition: service_started
+      mongodb-auth:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - lms-network
+    restart: unless-stopped
+
+  employee-service:
+    image: riolog27/lms-employee-service:1.2
+    container_name: lms-employee-service
+    ports:
+      - "3002:3002"
+    environment:
+      - PORT=3002
+      - MONGO_URI=mongodb://mongodb-employee:27017/employee-db
+      - CONSUL_HOST=consul
+      - CONSUL_PORT=8500
+      - DOCKER_ENV=true
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
+      - LOGSTASH_HOST=logstash
+      - LOGSTASH_PORT=5000
+      - JAEGER_ENDPOINT=http://jaeger:14268/api/traces
+      - JWT_SECRET=${JWT_SECRET}
+    depends_on:
+      consul:
+        condition: service_started
+      mongodb-employee:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - lms-network
+    restart: unless-stopped
+
+  leave-service-1:
+    image: riolog27/lms-leave-service:1.3
+    container_name: lms-leave-service-1
+    ports:
+      - "3003:3003"
+    environment:
+      - PORT=3003
+      - INSTANCE_ID=leave-service-1
+      - MONGO_URI=mongodb://mongodb-leave:27017/leave-db
+      - CONSUL_HOST=consul
+      - CONSUL_PORT=8500
+      - DOCKER_ENV=true
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
+      - LOGSTASH_HOST=logstash
+      - LOGSTASH_PORT=5000
+      - JAEGER_ENDPOINT=http://jaeger:14268/api/traces
+      - JWT_SECRET=${JWT_SECRET}
+      - EMPLOYEE_SERVICE_URL=http://employee-service:3002
+    depends_on:
+      consul:
+        condition: service_started
+      mongodb-leave:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      employee-service:
+        condition: service_started
+    networks:
+      - lms-network
+    restart: unless-stopped
+
+  leave-service-2:
+    image: riolog27/lms-leave-service:1.3
+    container_name: lms-leave-service-2
+    ports:
+      - "3005:3003"
+    environment:
+      - PORT=3003
+      - INSTANCE_ID=leave-service-2
+      - MONGO_URI=mongodb://mongodb-leave:27017/leave-db
+      - CONSUL_HOST=consul
+      - CONSUL_PORT=8500
+      - DOCKER_ENV=true
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
+      - LOGSTASH_HOST=logstash
+      - LOGSTASH_PORT=5000
+      - JAEGER_ENDPOINT=http://jaeger:14268/api/traces
+      - JWT_SECRET=${JWT_SECRET}
+      - EMPLOYEE_SERVICE_URL=http://employee-service:3002
+    depends_on:
+      consul:
+        condition: service_started
+      mongodb-leave:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      employee-service:
+        condition: service_started
+    networks:
+      - lms-network
+    restart: unless-stopped
+
+  notification-service:
+    image: riolog27/lms-notification-service:1.2
+    container_name: lms-notification-service
+    environment:
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
+      - LOGSTASH_HOST=logstash
+      - LOGSTASH_PORT=5000
+      - SMTP_HOST=mailpit
+      - SMTP_PORT=1025
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - lms-network
+    restart: unless-stopped
+
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: lms-mailpit
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+    networks:
+      - lms-network
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:alpine
+    container_name: lms-nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./infrastructure/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - leave-service-1
+      - leave-service-2
+      - api-gateway
+    networks:
+      - lms-network
+    restart: unless-stopped
+
+  api-gateway:
+    image: riolog27/lms-api-gateway:1.2
+    container_name: lms-api-gateway
+    ports:
+      - "3004:3004"
+    environment:
+      - PORT=3004
+      - JWT_SECRET=${JWT_SECRET}
+      - CONSUL_HOST=consul
+      - CONSUL_PORT=8500
+      - DOCKER_ENV=true
+      - LOGSTASH_HOST=logstash
+      - LOGSTASH_PORT=5000
+      - JAEGER_ENDPOINT=http://jaeger:14268/api/traces
+      - AUTH_SERVICE_URL=http://auth-service:3001
+      - EMPLOYEE_SERVICE_URL=http://employee-service:3002
+      - LEAVE_SERVICE_URL=http://nginx
+    depends_on:
+      - consul
+      - auth-service
+      - employee-service
+      - leave-service-1
+      - leave-service-2
+    networks:
+      - lms-network
+    restart: unless-stopped
+
+volumes:
+  mongodb_auth_data:
+  mongodb_employee_data:
+  mongodb_leave_data:
+  elasticsearch_data:
+
+networks:
+  lms-network:
+    driver: bridge
