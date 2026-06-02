@@ -55,7 +55,8 @@ const start = async () => {
     app.listen(PORT, async () => {
       console.log(`📝 Leave Service [${INSTANCE_ID}] running on port ${PORT}`);
       logger.info(`Leave Service started`, { instanceId: INSTANCE_ID, port: PORT });
-      await registerWithConsul('leave-service', 3003);
+      // await registerWithConsul('leave-service', 3003);
+      registerWithConsul(process.env.INSTANCE_ID || 'leave-service', 3003)
     });
 
   } catch (error) {
