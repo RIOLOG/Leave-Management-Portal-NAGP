@@ -1,14 +1,25 @@
 require('colors');
 const User = require('../models/User');
-const { publishEvent } = require('../../../shared/config/rabbitmq');
+const { publishEvent, isChannelReady } = require('../../../shared/config/rabbitmq');
 
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
+const waitForRabbitMQ = async (maxWait = 60000) => {
+  const interval = 2000;
+  let waited = 0;
+  while (!isChannelReady() && waited < maxWait) {
+    console.log('Waiting for RabbitMQ channel to be ready...'.yellow);
+    await sleep(interval);
+    waited += interval;
+  }
+  if (!isChannelReady()) {
+    console.error('RabbitMQ channel not ready after max wait — events may be lost'.red);
+  }
+};
+
 const seedUsers = async (attempt = 1) => {
   try {
-    // Wait 2s on first attempt — Docker topology needs time to stabilize
-    // even after mongoose emits 'connected'
-    if (attempt === 1) await sleep(2000);
+    if (attempt === 1) await waitForRabbitMQ();
 
     const existingUsers = await User.countDocuments();
     if (existingUsers > 0) {

@@ -343,7 +343,7 @@ Authorization: Bearer <jwt_token>
 | Method | Endpoint | Purpose |
 |----------|----------|----------|
 | GET | `/employees` | Get all employees |
-| GET | `/employees/:id/balance` | Get employee leave balance |
+| GET | `/employees/:userid/balance` | Get employee leave balance |
 
 ### API Gateway → Leave Service
 
@@ -520,9 +520,9 @@ All images available at: https://hub.docker.com/u/riolog27
 | Service | Image | Tag |
 |---|---|---|
 | API Gateway | riolog27/lms-api-gateway | 1.2 |
-| Auth Service | riolog27/lms-auth-service | 1.2 |
-| Employee Service | riolog27/lms-employee-service | 1.2 |
-| Leave Service | riolog27/lms-leave-service | 1.2 |
+| Auth Service | riolog27/lms-auth-service | 1.3 |
+| Employee Service | riolog27/lms-employee-service | 1.3 |
+| Leave Service | riolog27/lms-leave-service | 1.3 |
 | Notification Service | riolog27/lms-notification-service | 1.2 |
 
 ### Pull and run using Docker Hub images:

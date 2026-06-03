@@ -68,4 +68,6 @@ const publishEvent = (routingKey, data) => {
   }
 };
 
-module.exports = { connectRabbitMQ, publishEvent, EXCHANGE_NAME };
+const isChannelReady = () => channel !== null;
+const getChannel = () => channel;
+module.exports = { connectRabbitMQ, publishEvent, EXCHANGE_NAME, isChannelReady, getChannel };
