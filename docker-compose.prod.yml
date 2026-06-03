@@ -133,7 +133,7 @@ services:
       - lms-network
 
   auth-service:
-    image: riolog27/lms-auth-service:1.2
+    image: riolog27/lms-auth-service:1.3
     container_name: lms-auth-service
     ports:
       - "3001:3001"
@@ -161,7 +161,7 @@ services:
     restart: unless-stopped
 
   employee-service:
-    image: riolog27/lms-employee-service:1.2
+    image: riolog27/lms-employee-service:1.3
     container_name: lms-employee-service
     ports:
       - "3002:3002"

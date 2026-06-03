@@ -13,7 +13,7 @@ const employeeRoutes = require('./routes/employee');
 
 const connectDB = require('../../shared/config/database');
 const { registerWithConsul } = require('../../shared/config/consul');
-const { connectRabbitMQ } = require('../../shared/config/rabbitmq');
+const { connectRabbitMQ, isChannelReady } = require('../../shared/config/rabbitmq');
 const errorHandler = require('../../shared/middleware/errorHandler');
 const { createLogger } = require('../../shared/config/logger');
 
@@ -43,13 +43,24 @@ app.get('/health', (req, res) => {
 app.use(errorHandler);
 
 // ─── Start Server ─────────────────────────────────────
+const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+const waitForRabbitMQ = async (maxWait = 60000) => {
+  const interval = 2000;
+  let waited = 0;
+  while (!isChannelReady() && waited < maxWait) {
+    await sleep(interval);
+    waited += interval;
+  }
+};
+
 const start = async () => {
   try {
-    // Step 1 — connect MongoDB
     await connectDB();
-
-    // Step 2 — connect RabbitMQ + start listeners
-    const channel = await connectRabbitMQ();
+    connectRabbitMQ();
+    await waitForRabbitMQ();
+    const { getChannel } = require('../../shared/config/rabbitmq');
+    const channel = getChannel();
     if (channel) {
       await startListeners(channel);
     }
