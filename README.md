@@ -670,7 +670,7 @@ docker compose up -d
 ---
 
 ## Demo Video
-[Add link after recording]
+https://drive.google.com/file/d/17ajEmgu_Cfm4B5_oPu5V-g7jWprZbzoR/view?usp=sharing
 
 ---
 
