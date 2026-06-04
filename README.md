@@ -190,58 +190,6 @@ Everything runs in Docker containers.
 
 ---
 
-## Quick Start
-
-### 1. Clone the repository:
-```bash
-git clone https://github.com/RIOLOG/Leave-Management-Portal-NAGP.git
-cd Leave-Management-Portal-NAGP
-```
-
-### 2. Create environment file:
-```bash
-cp .env.example .env
-```
-
-Edit `.env` with your values:
-```env
-JWT_SECRET=your_secret_key_here
-JWT_EXPIRY=24h
-```
-
-### 3. Start all services (single command):
-```bash
-docker compose up -d
-```
-
-### 4. Wait for initialization:
-```bash
-# Monitor startup:
-docker compose logs -f auth-service
-
-# Wait until you see:
-# ✅ MongoDB connected
-# ✅ Connected to RabbitMQ
-# ✅ Users seeded successfully!
-```
-
-### 5. Verify all services running:
-```bash
-docker ps
-```
-
-### 6. Access the system:
-| Service | URL |
-|---|---|
-| API Gateway | http://localhost:3004 |
-| Nginx (main entry) | http://localhost:80 |
-| Consul UI | http://localhost:8500 |
-| RabbitMQ UI | http://localhost:15672 |
-| Kibana (logs) | http://localhost:5601 |
-| Jaeger (traces) | http://localhost:16686 |
-| Mailpit (emails) | http://localhost:8025 |
-
----
 
 ## Services & Ports
 
