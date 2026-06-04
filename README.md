@@ -635,7 +635,7 @@ The current implementation is designed for local development and demonstration p
 
 | Variable | Description | Required | Default |
 |---|---|---|---|
-| JWT_SECRET | JWT signing secret | ✅ | - |
+| JWT_SECRET | JWT signing secret (use ankitsinghsecretkeynagpassignemnt) | ✅ | - |
 | JWT_EXPIRY | Token expiration | ❌ | 24h |
 
 All other variables are pre-configured in docker-compose.yml.
@@ -656,18 +656,156 @@ docker compose restart <service-name>
 ### Port already in use:
 ```bash
 # Stop all containers:
-docker compose down
+docker compose -f docker-compose.prod.yml down
+
 # Start fresh:
-docker compose up -d
+docker compose -f docker-compose.prod.yml up -d
 ```
 
 ### Full reset (clear all data):
 ```bash
-docker compose down -v
+docker compose -f docker-compose.prod.yml down -v
+
+docker compose -f docker-compose.prod.yml up -d
+```
+
+---
+
+
+
+# Quick Start
+
+## Option 1 — Run from Source Code (Development)
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/RIOLOG/Leave-Management-Portal-NAGP.git
+cd Leave-Management-Portal-NAGP
+```
+
+### 2. Create Environment File
+
+```bash
+cp .env
+(env. file is present in submission checklist folder)
+```
+
+### 3. Start All Services
+
+```bash
 docker compose up -d
 ```
 
 ---
+
+## Option 2 — Run from Docker Hub Images
+
+
+No source code is required. Only Docker and Docker Compose need to be installed.
+
+### 1. Copy the Deployment Package
+
+This folder is present in submission checklist folder as named (docker-compose.prod.yml)
+
+```text
+docker-compose.prod.yml/
+├── docker-compose.prod.yml
+├── .env
+└── infrastructure/
+    ├── nginx/
+    │   └── nginx.conf
+    └── elk/
+        └── logstash.conf
+```
+
+### 2. Navigate to the Deployment Directory
+
+```bash
+cd path/to/docker-compose.prod.yml
+```
+
+### 3. Start the Complete System
+
+```bash
+docker compose -f docker-compose.prod.yml up -d
+```
+
+Docker will automatically pull all required images from Docker Hub, including:
+
+* Infrastructure images (MongoDB, RabbitMQ, Consul, Nginx, etc.)
+* Application service images (e.g., `riolog27/lms-auth-service:1.3`)
+
+### 4. Monitor Initialization
+
+Track the startup process of the authentication service:
+
+```bash
+docker compose -f docker-compose.prod.yml logs -f auth-service
+```
+
+Wait until the following messages appear:
+
+```text
+✅ MongoDB connected
+✅ Connected to RabbitMQ
+✅ Users seeded successfully!
+✅ Event published: user.created
+```
+
+### 5. Verify Running Containers
+
+```bash
+docker ps
+```
+
+You should see all containers running with the status:
+
+```text
+Up
+```
+
+### 6. Access the System
+
+| Service                      | URL                    |
+| ---------------------------- | ---------------------- |
+| API Gateway                  | http://localhost:3004  |
+| Nginx (Load Balancer)        | http://localhost       |
+| Consul UI                    | http://localhost:8500  |
+| RabbitMQ Management UI       | http://localhost:15672 |
+| Kibana (Logs)                | http://localhost:5601  |
+| Jaeger (Distributed Tracing) | http://localhost:16686 |
+| Mailpit (Email Testing)      | http://localhost:8025  |
+
+**RabbitMQ Credentials**
+
+```text
+Username: guest
+Password: guest
+```
+
+### 7. Stop the Application
+
+```bash
+docker compose -f docker-compose.prod.yml down
+```
+
+### 8. Reset the Environment (Remove All Data)
+
+```bash
+docker compose -f docker-compose.prod.yml down -v
+docker compose -f docker-compose.prod.yml up -d
+```
+
+---
+
+## Notes
+
+* First startup may take several minutes while Docker downloads all required images.
+* Ensure ports `80`, `3004`, `8500`, `15672`, `5601`, `16686`, and `8025` are available on the host machine.
+* For a clean environment reset, use the reset commands provided above.
+
+
 
 ## Demo Video
 https://drive.google.com/file/d/17ajEmgu_Cfm4B5_oPu5V-g7jWprZbzoR/view?usp=sharing
